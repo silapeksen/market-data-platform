@@ -2,7 +2,6 @@
 
 An end-to-end data engineering project: ingest market data (stocks, FX, crypto, macro indicators), orchestrate pipelines, model the data in a warehouse, and serve it for analytics. Built phase by phase to learn and demonstrate the modern data engineering stack.
 
-> **Status:** Phase 0 (setup). See [ROADMAP.md](ROADMAP.md) for progress.
 
 ## Goals
 
