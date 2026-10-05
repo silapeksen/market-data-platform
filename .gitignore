@@ -1,12 +1,19 @@
-# Database files
-*.db
+# secrets
+.env
 
-# Python system files
+# python
+venv/
+.venv/
 __pycache__/
 *.pyc
+.pytest_cache/
 
-# VS Code settings
+# local data
+*.db
+*.sqlite
+data/
+
+# editors / OS
 .vscode/
-
-# Library list backup (Optional, sometimes for venv folder)
-venv/
+.idea/
+.DS_Store

@@ -1,83 +1,69 @@
-# Financial Data ETL Pipeline
+# Market Data Platform
 
-An end-to-end Data Engineering pipeline that extracts live financial data, performs automated transformations, and loads it into a persistent SQL database.
+An end-to-end data engineering project: ingest market data (stocks, FX, crypto, macro indicators), orchestrate pipelines, model the data in a warehouse, and serve it for analytics. Built phase by phase to learn and demonstrate the modern data engineering stack.
 
-## Project Overview
-As a 3rd-year Computer Engineering student at Istanbul Aydin University, I developed this project to demonstrate core **Data Engineering** principles. The system automates the flow of market data, ensuring data integrity and persistence—skills that are essential for data-driven sectors like banking and finance.
+> **Status:** Phase 0 (setup). See [ROADMAP.md](ROADMAP.md) for progress.
 
-### Tech Stack
-* **Language:** Python 3.x
-* **Libraries:** Pandas, SQLAlchemy, yfinance
-* **Database:** SQLite (Relational Storage)
-* **Workflow:** ETL (Extract, Transform, Load)
+## Goals
 
+- Batch ingestion (daily pulls, historical backfill)
+- Streaming ingestion (live price feed)
+- Orchestration, testing, and monitoring
+- Dimensional modeling (staging -> marts)
+- Cloud deployment and CI/CD
 
+## Planned architecture
 
----
+```
+ Sources              Ingestion        Storage / Warehouse        Serving
+┌──────────────┐    ┌───────────┐    ┌──────────────────────┐   ┌───────────┐
+│ yfinance     │    │  Python   │    │ PostgreSQL (Phase 1) │   │ Power BI  │
+│ Binance API  │───>│  Airflow  │───>│ dbt models (Phase 3) │──>│ Dashboards│
+│ TCMB EVDS    │    │  Kafka    │    │ BigQuery / S3 (P4)   │   └───────────┘
+└──────────────┘    └───────────┘    └──────────────────────┘
+                     (Phase 2, 5)           Spark (Phase 5)
+```
 
-## How It Works
+## Tech stack (planned)
 
-### 1. Extract
-Using the `yfinance` API, the system retrieves 1-minute interval market data (e.g., BTC-USD) for the last 24 hours.
-* **Error Handling:** Implemented `try-except` blocks to ensure the pipeline remains robust during API connection issues.
+| Layer | Tools |
+|---|---|
+| Language | Python, SQL |
+| Storage | PostgreSQL, later BigQuery or S3 |
+| Orchestration | Apache Airflow |
+| Transformation | dbt, PySpark |
+| Streaming | Kafka |
+| Infra | Docker, docker-compose, GitHub Actions |
+| BI | Power BI |
 
-### 2. Transform
-Raw data is processed using **Pandas** to meet production-ready standards:
-* **Cleaning:** Automatically removes unnecessary columns like `Stock Splits` and `Dividends`.
-* **Normalization:** Converts column names to lowercase for seamless SQL compatibility.
-* **Metadata:** Adds `ticker` symbols and `ingested_at` timestamps to maintain a clear **Audit Trail**.
-* **Timezone Handling:** Standardizes timestamps by removing UTC offsets to ensure database consistency.
+## Project structure
 
-### 3. Load
-The cleaned data is streamed into a **SQLite** database (`market_data.db`) using **SQLAlchemy**.
-* **Persistence:** Utilizes `if_exists='append'` logic to build a continuous time-series dataset, preventing data loss across multiple runs.
+```
+src/ingestion/   # pull data from APIs
+src/transform/   # clean and standardize
+src/load/        # write to the database
+sql/             # schemas and queries
+dags/            # Airflow DAGs (Phase 2)
+tests/           # unit and data-quality tests
+docs/            # notes, diagrams, learning log
+```
 
----
+## Getting started
 
-## Results & Validation
-During testing, the pipeline successfully processed and stored over **550+ records** with 100% data integrity. This architecture serves as a foundation for more complex projects, such as my current work on **Hybrid Energy Potential Assessment**.
+1. Copy the environment file and set your own password:
+   ```
+   cp .env.example .env
+   ```
+2. Start the database:
+   ```
+   docker compose up -d
+   ```
+3. Check it is healthy:
+   ```
+   docker compose ps
+   ```
 
+## Author
 
-
-## Getting Started
-
-1. **Clone the repository:**
-   ```bash
-   git clone [https://github.com/silapeksen/financial-data-pipeline.git](https://github.com/silapeksen/financial-data-pipeline.git)
-
-2. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-
-3. **Run the pipeline:**
-   ```bash
-   python data_ingestion.py
-
-4. **Verify the database:**
-   ```bash
-   python check_db.py
-
----
-
-## 👤 Author
-
-<div align="center">
-  <img src="https://img.shields.io/badge/Author-Sıla%20Pekşen-blue?style=for-the-badge&logo=github" alt="Sıla Pekşen">
-</div>
-
-<p align="center">
-  <b>3rd Year Computer Engineering Student</b><br>
-  <i>Passionate about Data Engineering, Automation, and Backend Systems.</i>
-</p>
-
-<div align="center">
-  
-  [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](www.linkedin.com/in/sila-peksen)
-  [![GitHub](https://img.shields.io/badge/GitHub-100000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/silapeksen)
-  [![Mail](https://img.shields.io/badge/Mail-D14836?style=for-the-badge&logo=gmail&logoColor=white)](mailto:slpkn503@gmail.com)
-
-</div>
-
-<p align="center">
-  "Turning raw data into meaningful insights, one pipeline at a time."
-</p>
+Sıla Pekşen, Computer Engineering, Istanbul Aydin University.
+[GitHub](https://github.com/silapeksen) · [LinkedIn](https://www.linkedin.com/in/sila-peksen)
