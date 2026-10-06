@@ -1,7 +1,11 @@
+import os # operating syst
 import yfinance as yf
 import pandas as pd
 from datetime import datetime
-from sqlalchemy import create_engine
+from dotenv import load_dotenv # package reads .env file
+from sqlalchemy import create_engine, URL # URL is the SQLAlchemy’s connection link generator
+
+load_dotenv() # read .env file
 
 # Extract
 
@@ -55,15 +59,26 @@ def transform_data(df, ticker_symbol):
 
 # Load
 
-def load_data(df, db_name="market_data.db"):
+def get_engine():
+    url = URL.create(
+        drivername="postgresql+psycopg2",
+        username=os.getenv("POSTGRES_USER"),
+        password=os.getenv("POSTGRES_PASSWORD"),
+        host="localhost",
+        port=5432,
+        database=os.getenv("POSTGRES_DB"),
+    )
+    return create_engine(url)
+
+def load_data(df):
     if df is None or df.empty:
         print("No data to load.")
         return
-    
+
     try:
-        engine = create_engine(f'sqlite:///{db_name}')
-        df.to_sql('prices', engine, if_exists='append', index=False)
-        print(f"--- Loading completed at {datetime.now()}, db: {db_name} ---")
+        engine = get_engine()
+        df.to_sql("prices", engine, schema="raw", if_exists="append", index=False)
+        print(f"--- Loading completed at {datetime.now()} ---")
     except Exception as e:
         print(f"Error loading data into database: {e}")
 
