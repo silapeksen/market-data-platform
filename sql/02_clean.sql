@@ -1,3 +1,7 @@
+/*
+    Creating the clean.prices table if it does not exist.
+*/
+
 CREATE TABLE IF NOT EXISTS clean.prices (
     ticker      TEXT        NOT NULL,
     datetime    TIMESTAMP   NOT NULL,
