@@ -1,11 +1,13 @@
 import os # operating syst
 import yfinance as yf
-import pandas as pd
 from datetime import datetime
 from dotenv import load_dotenv # package reads .env file
 from sqlalchemy import create_engine, URL # URL is the SQLAlchemy’s connection link generator
 
 load_dotenv() # read .env file
+
+# Constants
+TICKERS = ["BTC-USD", "ETH-USD", "USDTRY=X"]
 
 # Extract
 
@@ -47,8 +49,8 @@ def transform_data(df, ticker_symbol):
     # Lowercase column names (uppercase letters sometimes cause problems in SQL)
     df.columns = [col.lower() for col in df.columns]
 
-    # Remove the time zone information (+00:00), for database compatibility
-    df['datetime'] = df['datetime'].dt.tz_localize(None)
+    # Timezone conversion and localization
+    df['datetime'] = df['datetime'].dt.tz_convert("UTC").dt.tz_localize(None)
 
     # Add metadata tags
     df['ticker'] = ticker_symbol # Adding a column for the ticker symbol as metadata
@@ -82,17 +84,26 @@ def load_data(df):
     except Exception as e:
         print(f"Error loading data into database: {e}")
 
-# MAIN EXECUTION ***
 
-symbol = "BTC-USD"
-raw_data = fetch_market_data(symbol) # Excracting the raw data for the specified symbol
+def run_pipeline(ticker_symbol):
 
-if raw_data is not None:
+    # önce raw bi şekilde data çekiliyor.
+    raw_data = fetch_market_data(ticker_symbol)
+
+    # raw data standardize edilip etiketleniyor (columns, ticker, ingested_at).
+    clean_data = transform_data(raw_data, ticker_symbol)
     
-    clean_data = transform_data(raw_data, symbol) # Transforming the raw data
-    
+    # sonr data sql tarafında(DISTINC + ON CONFLICT) temizleniyor(clean.prices katmanı)
+    load_data(clean_data)
+
     if clean_data is not None:
-        load_data(clean_data) # Loading the transformed data into the database
+        print(f"\nSample of {ticker_symbol}:")
+        print(clean_data.head(2))
 
-    print("\nSample of the ETL data:")
-    print(clean_data.head(2)) # Displaying 2
+def main():
+    # TICKER constant ındaki sembolleri tek tek run_pipeline a atıyor.
+    for symbol in TICKERS:
+        run_pipeline(symbol)
+
+if __name__ == "__main__":
+    main()
